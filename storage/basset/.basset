@@ -310,5 +310,11 @@
         "asset_path": "C:\\xampp\\htdocs\\payin\\payin-payout\\vendor/backpack/theme-tabler/resources/assets/css/skins/fuzzy-background.css",
         "asset_disk_path": "basset/vendor/backpack/theme-tabler/resources/assets/css/skins/fuzzy-background.css",
         "asset_attributes": []
+    },
+    "https://www.gravatar.com/avatar/90a4989184b386bb5e179e29798d9315e85c3a8a51bdb66336f73ba212a5b3f9.jpg?s=80&d=blank&r=g": {
+        "asset_name": "https://www.gravatar.com/avatar/90a4989184b386bb5e179e29798d9315e85c3a8a51bdb66336f73ba212a5b3f9.jpg?s=80&d=blank&r=g",
+        "asset_path": "https://www.gravatar.com/avatar/90a4989184b386bb5e179e29798d9315e85c3a8a51bdb66336f73ba212a5b3f9.jpg?s=80&d=blank&r=g",
+        "asset_disk_path": "basset/www.gravatar.com/avatar/90a4989184b386bb5e179e29798d9315e85c3a8a51bdb66336f73ba212a5b3f9.jpg",
+        "asset_attributes": []
     }
 }

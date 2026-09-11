@@ -8,6 +8,8 @@ use App\Models\Payout;
 use App\Services\WalletService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ProcessPendingPayments extends Command
 {
@@ -38,7 +40,14 @@ class ProcessPendingPayments extends Command
         Payin::where('status', Payin::STATUS_PENDING)
             ->chunkById(50, function ($payins) {
                 foreach ($payins as $payin) {
-                    $this->processOnePayin($payin->id);
+                    try {
+                        $this->processOnePayin($payin->id);
+                    } catch (Throwable $e) {
+                        Log::channel('payments')->error('Failed to process payin', [
+                            'payin_id' => $payin->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             });
     }
@@ -53,9 +62,10 @@ class ProcessPendingPayments extends Command
             }
 
             $oldStatus = $payin->status;
-            $newStatus = $this->randomStatus();
+            $newStatus = $this->randomStatus(); // Returns lowercase 'success', 'failed', 'pending'
             $merchant = $payin->merchant()->with('wallet')->first();
 
+            // Credit wallet ONLY if status becomes SUCCESS
             if ($newStatus === Payin::STATUS_SUCCESS) {
                 if ($merchant && $merchant->wallet && ! $payin->wallet_credited) {
                     $this->walletService->credit(
@@ -87,7 +97,14 @@ class ProcessPendingPayments extends Command
         Payout::where('status', Payout::STATUS_PENDING)
             ->chunkById(50, function ($payouts) {
                 foreach ($payouts as $payout) {
-                    $this->processOnePayout($payout->id);
+                    try {
+                        $this->processOnePayout($payout->id);
+                    } catch (Throwable $e) {
+                        Log::channel('payments')->error('Failed to process payout', [
+                            'payout_id' => $payout->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             });
     }
@@ -105,6 +122,7 @@ class ProcessPendingPayments extends Command
             $newStatus = $this->randomStatus();
             $merchant = $payout->merchant()->with('wallet')->first();
 
+            // Debit wallet ONLY if status resolves to SUCCESS and balance is sufficient
             if ($newStatus === Payout::STATUS_SUCCESS) {
                 if ($merchant && $merchant->wallet && $merchant->wallet->balance >= $payout->amount) {
                     if (! $payout->wallet_debited) {
@@ -119,7 +137,7 @@ class ProcessPendingPayments extends Command
                     }
                 } else {
                     $newStatus = Payout::STATUS_FAILED;
-                    $payout->failure_reason = 'Insufficient wallet balance';
+                    $payout->failure_reason = 'Insufficient wallet balance or wallet missing';
                 }
             }
 
@@ -138,6 +156,7 @@ class ProcessPendingPayments extends Command
 
     private function randomStatus(): string
     {
+        // Lowercase to match standard Laravel model status constants ('success', 'failed', 'pending')
         $options = ['success', 'failed', 'pending'];
 
         return $options[array_rand($options)];

@@ -29,12 +29,11 @@ class MerchantCrudController extends CrudController
         CRUD::column('status');
         CRUD::column('created_at');
 
-        CRUD::filter('status')
-            ->type('select2')
-            ->values(['ACTIVE' => 'Active', 'INACTIVE' => 'Inactive'])
-            ->whenActive(function ($value) {
-                CRUD::addClause('where', 'status', $value);
-            });
+        // Filters bar is PRO-only, so filtering via plain query param —
+        // /admin/merchant?status=ACTIVE
+        if (request()->filled('status')) {
+            CRUD::addClause('where', 'status', request()->get('status'));
+        }
     }
 
     protected function setupCreateOperation()

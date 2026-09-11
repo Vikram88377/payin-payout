@@ -8,9 +8,9 @@ use App\Http\Controllers\Api\PayoutController;
 
 
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 
 Route::post('/payins', [PayinController::class, 'store']);

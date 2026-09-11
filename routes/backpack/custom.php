@@ -16,6 +16,10 @@ Route::group([
     ),
     'namespace' => 'App\Http\Controllers\Admin',
 ], function () { // custom admin routes
+    Route::crud('merchant', 'MerchantCrudController');
+    Route::crud('wallet', 'WalletCrudController');
+    Route::crud('payin', 'PayinCrudController');
+    Route::crud('payout', 'PayoutCrudController');
 }); // this should be the absolute last line of this file
 
 /**
