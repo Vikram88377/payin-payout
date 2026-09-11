@@ -1,203 +1,166 @@
-# Pay-in & Payout Module (Laravel + Backpack)
+# Laravel Pay-in & Payout Module
 
-A backend-focused Pay-in / Payout module built with Laravel 13 and Laravel Backpack. Merchants can
-initiate pay-ins and payouts via API; a scheduled cron job then processes PENDING transactions,
-randomly resolving each to `SUCCESS`, `FAILED`, or `PENDING` (re-picked on the next run), and updates
-merchant wallet balances atomically — with database-level guards against double-crediting/debiting.
+A backend module for handling merchant pay-ins and payouts, with wallet balance
+management, a cron-based payment processor, and a Backpack admin panel.
 
----
+## Requirements
 
-## 1. Requirements
+- PHP >= 8.2 with common extensions (`pdo_mysql`, `mbstring`, `openssl`, `bcmath`, `ctype`, `fileinfo`)
+- Composer 2.x
+- MySQL 8.x (or MariaDB)
+- Node.js + npm (only if your Backpack theme needs asset building — most themes work via CDN/Basset without this)
 
-- PHP >= 8.3 with common extensions (`pdo_mysql`, `mbstring`, `openssl`, `bcmath`, `ctype`, `fileinfo`)
-- Composer
+## Tech Stack
+
+- Laravel 11
+- Laravel Backpack (CRUD, admin panel)
 - MySQL
-- Node.js 18+ & npm (only needed for the Backpack admin theme assets)
 
----
+## Features
 
-## 2. Setup — clone & run
+- Merchant, Wallet, Payin, Payout management
+- API endpoints to initiate pay-ins/payouts
+- Cron job that picks up PENDING payments and randomly resolves them to
+  SUCCESS / FAILED / PENDING
+- Wallet balance updates on successful payments, with row locking and a
+  transaction ledger to prevent double-processing
+- Event-driven logging of status changes
+- Backpack admin panel for Merchants, Payins, Payouts, Wallets, with a custom
+  filter bar (status / merchant / date range)
+
+## Setup Instructions
+
+### 1. Clone and install dependencies
 
 ```bash
-# 1. Clone the repo
 git clone https://github.com/Vikram88377/payin-payout
 cd payin-payout
-
-# 2. Install PHP dependencies
 composer install
-
-# 3. Copy the environment file and generate an app key
-cp .env.example .env
-php artisan key:generate
-
-# 4. Configure your database in .env
-#    DB_CONNECTION=mysql
-#    DB_HOST=127.0.0.1
-#    DB_PORT=3306
-#    DB_DATABASE=payin_payout
-#    DB_USERNAME=root
-#    DB_PASSWORD=
-
-# 5. Create the database (if it doesn't exist yet)
-mysql -u root -e "CREATE DATABASE payin_payout"
-
-# 6. Run migrations + seeders (creates sample merchants, wallets, payins, payouts)
-php artisan migrate --seed
-
-# 7. Install JS dependencies & build assets (needed for the Backpack admin UI)
-npm install
-npm run build
-
-# 8. Serve the app
-php artisan serve
-# API base URL: http://127.0.0.1:8000/api
-# Admin panel:  http://127.0.0.1:8000/admin
 ```
 
-### Backpack admin login
+### 2. Environment setup
 
-Backpack's default auth uses the `users` table (`CheckIfAdmin` middleware treats any logged-in user
-as an admin — see `app/Http/Middleware/CheckIfAdmin.php`). An admin user is created automatically by
-`AdminUserSeeder` when you run `php artisan migrate --seed`:
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-- Email: `admin@gmail.com`
-- Password: `Admin@123`
+Update your `.env` with your database credentials:
 
-Log in at `http://127.0.0.1:8000/admin/login`.
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=payin_payout
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
----
+Create the database if it doesn't exist yet:
 
-## 3. Running the payment-processing cron
+```bash
+mysql -u root -e "CREATE DATABASE payin_payout"
+```
 
-Pending payins/payouts are picked up by the `payments:process-pending` Artisan command, scheduled to
-run **every minute** (see `routes/console.php`).
+### 3. Migrate and seed
 
-**Local development** — run the scheduler worker in a separate terminal (auto-runs due tasks every minute):
+```bash
+php artisan migrate:fresh --seed
+```
+
+
+- An admin login for the Backpack panel — **email: `admin@gmail.com`, password: `Admin@123`
+
+
+### 4. Install Backpack assets
+
+```bash
+php artisan storage:link
+php artisan basset:cache
+```
+
+### 5. Run the app
+
+```bash
+php artisan serve
+```
+
+- API base URL: ` http://127.0.0.1:8000/api`
+- Admin panel: `http://127.0.0.1:8000/admin`
+
+### 6. Run the scheduler (for the cron job)
+
+For local testing, run the scheduler in the foreground:
 
 ```bash
 php artisan schedule:work
 ```
 
-**Production** — add a single cron entry that ticks Laravel's scheduler every minute:
-
-```
-* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
-```
-
-**Run once manually** (useful for testing without waiting a minute):
+Or trigger the cron command manually, any time:
 
 ```bash
 php artisan payments:process-pending
 ```
 
----
-          4. API Documentation / Sample Requests
+In production, add this to your server's crontab:
 
-          All responses are JSON. Base URL: http://127.0.0.1:8000/api
+```
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+```
 
-          A ready-to-import Postman collection is included: Payin-Payout.postman_collection.json (repo root). It has all 5 endpoints below pre-configured with sample bodies and collection variables (base_url, merchant_id, payin_txn_id, payout_txn_id) so you can chain requests — create a payin, copy its transaction_id into the payin_txn_id variable, then check its status. Import it in Postman via Import → File.
+## Admin Panel
 
-          Create a Pay-in
+Log in at `http://127.0.0.1:8000/admin/login` with the seeded admin user
+(`admin@gmail.com` / `password` — see step 3 above). Once logged in,
+you'll find:
 
-          POST /api/payins
+- **Merchants** — full CRUD, filter by status
+- **Payins** — read-only (created via API/cron), filter by status, merchant, date
+- **Payouts** — read-only, filter by status, merchant, date
+- **Wallets** — read-only, filter by merchant
 
-          Body (raw JSON):
+## Logs
 
-          json
-          {
-            "merchant_id": 1,
-            "amount": 500,
-            "currency": "INR",
-            
-          }
+Payment-specific events (initiated, status changed, credited/debited, errors)
+are written to a dedicated log channel, separate from the default Laravel log:
 
-          Response 201:
+```
+storage/logs/payments-YYYY-MM-DD.log
+```
 
-          json
-          {
-            "success": true,
-            "message": "Payin initiated successfully.",
-            "data": {
-              "transaction_id": "PIN2026091100012AB3",
-              "status": "PENDING",
-              "amount": "500.00"
-            }
-          }
-          Check Pay-in status
+## API Documentation
 
-          GET /api/payins/{transaction_id}
+See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for endpoint details and
+sample requests/responses.
 
-          Create a Payout
-
-          POST /api/payouts
-
-          Body (raw JSON):
-
-          json
-          {
-            "merchant_id": 1,
-            "amount": 200,
-            "currency": "INR"
-          }
-
-          Fails with 422 if the merchant's wallet balance is insufficient.
-
-          Check Payout status
-
-          GET /api/payouts/{transaction_id}
-
-          Check merchant wallet balance
-
-          GET /api/merchants/{id}/wallet
-
-          Validation error example
-
-          422:
-
-          json
-          {
-            "success": false,
-            "message": "Validation failed.",
-            "errors": {
-              "amount": ["Amount must be at least 1."]
-            }
-          }
-## 5. Project structure
+## Project Structure (key folders)
 
 ```
 app/
-  Console/Commands/ProcessPendingPayments.php   # cron: resolves PENDING payins/payouts
+  Console/Commands/ProcessPendingPayments.php   cron logic
   Events/PaymentStatusChanged.php
   Listeners/LogPaymentStatusChange.php
   Helpers/TransactionIdGenerator.php
-  Http/Controllers/Api/                         # Payin, Payout, Merchant API controllers
-  Http/Controllers/Admin/                       # Backpack CRUD controllers
-  Http/Requests/                                # form request validation
-  Models/                                        # Merchant, Wallet, Payin, Payout, WalletTransaction
-  Services/                                       # PayinService, PayoutService, WalletService
+  Http/Controllers/Api/                         API controllers
+  Http/Controllers/Admin/                        Backpack CRUD controllers
+  Http/Requests/                                 validation
+  Models/
+  Services/                                      business logic
 database/
-  migrations/                                     # merchants, wallets, payins, payouts, wallet_transactions
-  seeders/                                         # AdminUserSeeder, MerchantSeeder, PayinPayoutSeeder
-routes/
-  api.php                                          # API endpoints
-  console.php                                      # scheduler registration
-  backpack/custom.php                              # admin CRUD routes
+  migrations/
+  seeders/
+resources/views/admin/filters/                   custom filter bar UI
+routes/api.php
+routes/backpack/custom.php
 ```
 
----
+## Notes
 
-## 6. Logging
-
-Payment events are written to a dedicated `payments` log channel:
-`storage/logs/payments-*.log` (daily rotation, 14 days retention). This includes payment initiation,
-status changes, wallet credit/debit events, and processing errors.
-
----
-
-## 7. Duplicate-processing safety
-
-- Each payin/payout row is row-locked (`lockForUpdate`) inside a DB transaction before its status is
-  changed, so two overlapping cron runs can't process the same record twice.
-- `wallet_credited` / `wallet_debited` boolean flags on payins/payouts act as an idempotency guard.
-- The `wallet_transactions` ledger has a unique constraint on `(reference_type, reference_id)`,
-  enforcing at the database level that a given payin/payout can only ever produce one ledger entry.
+- Backpack's built-in "Filters" bar is a PRO-only feature. I use
+  a small custom filter UI (Backpack Widgets + a plain GET form) instead, so
+  everything works on the free/community version.
+- Duplicate processing is guarded at three levels: a `wallet_credited` /
+  `wallet_debited` boolean flag on the payin/payout row, a row lock
+  (`lockForUpdate`) during cron processing, and a unique DB constraint on the
+  wallet ledger (`wallet_transactions`) tying each entry to exactly one
+  source payin/payout.
