@@ -52,6 +52,10 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
+#    Leave APP_URL as-is: APP_URL=http://127.0.0.1:8000
+#    (matches the default `php artisan serve` address used below — changing
+#    it will break Backpack's generated asset URLs)
+
 Create the database if it doesn't exist yet:
 
 ```bash
