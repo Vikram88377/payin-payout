@@ -7,10 +7,8 @@ management, a cron-based payment processor, and a Backpack admin panel.
 
 - PHP >= 8.2 with common extensions (`pdo_mysql`, `mbstring`, `openssl`, `bcmath`, `ctype`, `fileinfo`)
 - Composer
-- MySQL  (or MariaDB)
+- MySQL (or MariaDB)
 - Node.js + npm (only if your Backpack theme needs asset building — most themes work via CDN/Basset without this)
-
-
 
 ## Features
 
@@ -52,9 +50,9 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-#    Leave APP_URL as-is: APP_URL=http://127.0.0.1:8000
-#    (matches the default `php artisan serve` address used below — changing
-#    it will break Backpack's generated asset URLs)
+Leave `APP_URL` as-is: `APP_URL=http://127.0.0.1:8000`
+(matches the default `php artisan serve` address used below — changing
+it will break Backpack's generated asset URLs)
 
 Create the database if it doesn't exist yet:
 
@@ -68,18 +66,15 @@ mysql -u root -e "CREATE DATABASE payin_payout"
 php artisan migrate:fresh --seed
 ```
 
-
-- An admin login for the Backpack panel — **email: `admin@gmail.com`, password: `Admin@123`
-
+- An admin login for the Backpack panel — **email: `admin@gmail.com`, password: `Admin@123`**
 
 ### 4. Install Backpack assets
 
+Clear cached config/routes/views and pre-generate Backpack's admin theme
+assets. Skipping this step is the #1 cause of a broken/unstyled admin
+panel right after a fresh clone:
 
-# Clear cached config/routes/views and pre-generate Backpack's admin theme
-
-#    runtime — skipping this step is the #1 cause of a broken/unstyled
-#    admin panel right after a fresh clone
-
+```bash
 php artisan optimize:clear
 php artisan basset:clear
 php artisan storage:link
@@ -93,7 +88,7 @@ php artisan basset:cache
 php artisan serve
 ```
 
-- API base URL: ` http://127.0.0.1:8000/api`
+- API base URL: `http://127.0.0.1:8000/api`
 - Admin panel: `http://127.0.0.1:8000/admin`
 
 ### 6. Run the scheduler (for the cron job)
