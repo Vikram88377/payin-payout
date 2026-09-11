@@ -1,7 +1,10 @@
 <?php
 
 namespace App\Providers;
-
+ 
+use App\Models\Payin;
+use App\Models\Payout;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,5 +23,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+
+
+            Relation::enforceMorphMap([
+            'payin' => Payin::class,
+            'payout' => Payout::class,
+        ]);
     }
 }
