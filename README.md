@@ -6,15 +6,11 @@ management, a cron-based payment processor, and a Backpack admin panel.
 ## Requirements
 
 - PHP >= 8.2 with common extensions (`pdo_mysql`, `mbstring`, `openssl`, `bcmath`, `ctype`, `fileinfo`)
-- Composer 2.x
-- MySQL 8.x (or MariaDB)
+- Composer
+- MySQL  (or MariaDB)
 - Node.js + npm (only if your Backpack theme needs asset building — most themes work via CDN/Basset without this)
 
-## Tech Stack
 
-- Laravel 11
-- Laravel Backpack (CRUD, admin panel)
-- MySQL
 
 ## Features
 
