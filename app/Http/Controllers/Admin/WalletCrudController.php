@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Backpack\CRUD\app\Library\Widget;
 
 class WalletCrudController extends CrudController
 {
@@ -19,6 +20,12 @@ class WalletCrudController extends CrudController
 
     protected function setupListOperation()
     {
+        // Filters bar is PRO-only, so we build our own — but only show it on
+        // the actual list page, not when this method is reused for Show.
+        if (CRUD::getCurrentOperation() === 'list') {
+            Widget::add()->to('before_content')->type('view')->view('admin.filters.wallet_filters');
+        }
+
         CRUD::column('merchant')->type('select')->entity('merchant')->attribute('name');
         CRUD::column('balance');
         CRUD::column('updated_at')->label('Last updated');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\MerchantRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Backpack\CRUD\app\Library\Widget;
 
 class MerchantCrudController extends CrudController
 {
@@ -23,6 +24,10 @@ class MerchantCrudController extends CrudController
 
     protected function setupListOperation()
     {
+        if (CRUD::getCurrentOperation() === 'list') {
+            Widget::add()->to('before_content')->type('view')->view('admin.filters.merchant_filters');
+        }
+
         CRUD::column('id');
         CRUD::column('name');
         CRUD::column('email');
