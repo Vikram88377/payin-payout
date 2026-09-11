@@ -78,7 +78,6 @@ panel right after a fresh clone:
 php artisan optimize:clear
 php artisan basset:clear
 php artisan storage:link
-php artisan storage:link
 php artisan basset:cache
 ```
 
