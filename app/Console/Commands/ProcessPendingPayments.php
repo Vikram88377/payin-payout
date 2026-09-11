@@ -156,9 +156,8 @@ class ProcessPendingPayments extends Command
 
     private function randomStatus(): string
     {
-        // Lowercase to match standard Laravel model status constants ('success', 'failed', 'pending')
-        $options = ['success', 'failed', 'pending'];
-
+        $options = ['SUCCESS', 'FAILED', 'PENDING'];
+ 
         return $options[array_rand($options)];
     }
 }
