@@ -70,7 +70,15 @@ php artisan migrate:fresh --seed
 
 ### 4. Install Backpack assets
 
-```bash
+
+# Clear cached config/routes/views and pre-generate Backpack's admin theme
+
+#    runtime — skipping this step is the #1 cause of a broken/unstyled
+#    admin panel right after a fresh clone
+
+php artisan optimize:clear
+php artisan basset:clear
+php artisan storage:link
 php artisan storage:link
 php artisan basset:cache
 ```
