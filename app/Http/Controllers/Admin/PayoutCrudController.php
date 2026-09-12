@@ -20,8 +20,7 @@ class PayoutCrudController extends CrudController
 
     protected function setupListOperation()
     {
-        // Filters bar is PRO-only, so we build our own — but only show it on
-        // the actual list page, not when this method is reused for Show.
+    
         if (CRUD::getCurrentOperation() === 'list') {
             Widget::add()->to('before_content')->type('view')->view('admin.filters.payout_filters');
         }
@@ -32,8 +31,7 @@ class PayoutCrudController extends CrudController
         CRUD::column('status');
         CRUD::column('created_at');
 
-        // Filters bar is PRO-only, so filtering via plain query params instead —
-        // /admin/payout?status=PENDING&merchant_id=1&from=2026-01-01&to=2026-01-31
+   
         $this->applyBasicFilters();
     }
 

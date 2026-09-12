@@ -21,8 +21,7 @@ class PayinCrudController extends CrudController
 
     protected function setupListOperation()
     {
-        // Filters bar is PRO-only, so we build our own — but only show it on
-        // the actual list page, not when this method is reused for Show.
+
         if (CRUD::getCurrentOperation() === 'list') {
             Widget::add()->to('before_content')->type('view')->view('admin.filters.payin_filters');
         }
@@ -33,9 +32,7 @@ class PayinCrudController extends CrudController
         CRUD::column('status');
         CRUD::column('created_at');
 
-        // Backpack's built-in Filters bar is a PRO-only feature, so we filter
-        // using plain query string params instead — e.g.
-        // /admin/payin?status=PENDING&merchant_id=1&from=2026-01-01&to=2026-01-31
+  
         $this->applyBasicFilters();
     }
 

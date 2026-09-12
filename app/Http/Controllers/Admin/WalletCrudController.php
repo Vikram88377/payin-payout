@@ -20,8 +20,7 @@ class WalletCrudController extends CrudController
 
     protected function setupListOperation()
     {
-        // Filters bar is PRO-only, so we build our own — but only show it on
-        // the actual list page, not when this method is reused for Show.
+
         if (CRUD::getCurrentOperation() === 'list') {
             Widget::add()->to('before_content')->type('view')->view('admin.filters.wallet_filters');
         }
@@ -30,8 +29,7 @@ class WalletCrudController extends CrudController
         CRUD::column('balance');
         CRUD::column('updated_at')->label('Last updated');
 
-        // Filters bar is PRO-only, so filtering via plain query param —
-        // /admin/wallet?merchant_id=1
+
         if (request()->filled('merchant_id')) {
             CRUD::addClause('where', 'merchant_id', request()->get('merchant_id'));
         }
